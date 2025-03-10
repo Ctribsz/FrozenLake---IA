@@ -55,11 +55,19 @@ print(qtable)
 episodes = 1000        # epoc
 alpha = 0.5            # Learning rate
 gamma = 0.9            # Discount factor
-#environment.close()
+
+# Contadores para medir el desempeño
+# la cantidad de epoc exitosos
+# y el total de los pasos, esto al final es para que podamos saber el promedio de pasos
+# para encontrar la salida
+successful_episodes = 0  
+total_steps_success = 0   
 
 for _ in range(episodes):
     state, r_info = environment.reset()
     finished = False
+
+    steps = 0
 
     while not finished:
         # en un estado, elegir la accion con mayor reward
@@ -77,13 +85,30 @@ for _ in range(episodes):
 
         # nuevo estado
         state = new_state
+        steps += 1
 
-        # If we have a reward, it means that our outcome is a success
-        if reward:
-          print("llegamos al final :) ")
-        
-        #print(qtable)
+        environment.render()
 
+        # si hay un reward de 1 llegamos a la meta, sino quiere decir que no llegamos y caimos en aun agujero
+        if reward == 1:
+            successful_episodes += 1
+            total_steps_success += steps
+            print(f"\n\nLlegamos a la meta en {steps} pasos :)\n")
+        elif finished:
+            print("No llegamos a la meta :( ", end = "")
+
+environment.close()
 print()
 print('Tabla post entrenamiento:')
 print(qtable)
+
+if successful_episodes > 0:
+    average_steps = total_steps_success / successful_episodes
+    print(f"\nPromedio de pasos para llegar a la meta: {average_steps:.2f}")
+else:
+    print("\nNo hubo episodios exitosos.")
+
+# Al probar varias veces el promedio de pasos usualmente termina siendo entre 10 y 15
+# pero 
+# pero aun se podria mejorar de 2 formas, ajustando los hiperparametros
+# o ajustando el qlearning para usar "Epsilon greedy algorithm"
