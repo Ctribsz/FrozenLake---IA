@@ -1,5 +1,6 @@
 # En esta implementacion se buscan los parametros optimos y despues una Q - table final usando el algorimo e - greedy
 import gymnasium as gym
+from gymnasium.wrappers import RecordEpisodeStatistics
 import numpy as np
 import random
 
@@ -9,6 +10,7 @@ def train_q_learning(alpha, gamma, epsilon_decay, num_episodes=2000, max_steps=1
     Retorna la Q-table obtenida.
     """
     env = gym.make('FrozenLake-v1', is_slippery=True)
+    env = RecordEpisodeStatistics(env)
     n_states = env.observation_space.n
     n_actions = env.action_space.n
 
@@ -36,6 +38,9 @@ def train_q_learning(alpha, gamma, epsilon_decay, num_episodes=2000, max_steps=1
             epsilon *= epsilon_decay
 
     env.close()
+    print("\nEstadísticas del entrenamiento:")
+    print(f"Recompensas por episodio: {env.episode_returns}")
+    print(f"Longitud de episodios: {env.episode_lengths}")
     return Q
 
 def evaluate_q_table(Q, num_eval_episodes=1000, max_steps=100):
@@ -44,6 +49,7 @@ def evaluate_q_table(Q, num_eval_episodes=1000, max_steps=100):
     Retorna el número promedio de pasos y la tasa de éxito (episodios en los que se alcanzó la meta).
     """
     env = gym.make('FrozenLake-v1', is_slippery=True)
+    env = RecordEpisodeStatistics(env)
     total_steps = 0
     total_successes = 0
 
@@ -64,6 +70,9 @@ def evaluate_q_table(Q, num_eval_episodes=1000, max_steps=100):
     env.close()
     avg_steps = total_steps / num_eval_episodes
     success_rate = total_successes / num_eval_episodes
+    print("\nEstadísticas de evaluación:")
+    print(f"Recompensas por episodio: {env.episode_returns}")
+    print(f"Longitud de episodios: {env.episode_lengths}")
     return avg_steps, success_rate
 
 def search_optimal_hyperparameters(alpha_range, gamma_range, epsilon_decay_range, train_episodes=2000, eval_episodes=1000, max_steps=100):

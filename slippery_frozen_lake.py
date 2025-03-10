@@ -1,9 +1,37 @@
 import gymnasium as gym
 import numpy as np
+from gymnasium.wrappers import RecordEpisodeStatistics
+
+
+def demo_agent(Q, num_demo_episodes=10, max_steps=100):
+    """
+    Ejecuta una demostración visual del agente usando la Q-table obtenida.
+    Se utiliza el entorno FrozenLake con is_slippery=True y render_mode="human"
+    para mostrar cómo el agente se mueve.
+    """
+    env = gym.make('FrozenLake-v1', is_slippery=True, render_mode="human")
+
+    for episode in range(num_demo_episodes):
+        state, _ = env.reset()
+        done = False
+        steps = 0
+        print(f"\n--- Episodio {episode+1} ---")
+        while not done and steps < max_steps:
+            # En este modo, render_mode="human" ya muestra la simulación en una ventana
+            action = np.argmax(Q[state, :])
+            next_state, reward, terminated, truncated, _ = env.step(action)
+            state = next_state
+            steps += 1
+            done = terminated or truncated
+        print(f"Episodio terminado en {steps} pasos. Recompensa obtenida: {reward}")
+
+    env.close()
 
 # definicion del ambiente
 # el render mode se puede cambiar, human es el que se ve mejor visualmente pero es mas lento
 environment = gym.make('FrozenLake-v1', render_mode="rgb_array", is_slippery = True)
+environment = RecordEpisodeStatistics(environment)
+
 initial_state, info = environment.reset()
 
 print("Estado inicial:", initial_state)
@@ -30,7 +58,7 @@ environment.render()
 nb_states = environment.observation_space.n
 nb_actions = environment.action_space.n
 qtable = np.zeros((nb_states, nb_actions))
-print('Q-table')
+print('Q-table inicial: ')
 print(qtable)
 # cada una de las filas de la matriz es un estado y cada elemento de la lista es el valor de movernos hacia una direccion
 # siendo 1 lo mas alto posible y 0 lo mas bajo. 1 solo se obtiene al llegar a la meta y 0 al caer en un agujero
@@ -95,7 +123,11 @@ if successful_episodes > 0:
 else:
     print("\nNo hubo episodios exitosos.")
 
-# Al probar varias veces el promedio de pasos usualmente termina siendo entre 10 y 15
-# pero
-# pero aun se podria mejorar de 2 formas, ajustando los hiperparametros
-# o ajustando el qlearning para usar "Epsilon greedy algorithm"
+# Mostrar estadísticas del agente
+print("\nEstadísticas del agente:")
+print(f"Recompensas por episodio: {environment.episode_returns}")
+print(f"Longitud de episodios: {environment.episode_lengths}")
+
+
+demo_agent(qtable, num_demo_episodes=10, max_steps=100)
+
